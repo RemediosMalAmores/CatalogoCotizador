@@ -1,0 +1,72 @@
+# === Sistema operativo ===
+# Archivos de caché y miniaturas
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon
+desktop.ini
+
+# === Editores ===
+# VS Code
+.vscode
+.history
+.code-workspace
+
+# === Archivos temporales ===
+.log
+.tmp
+.bak
+.old
+.swp
+.swo
+.orig
+
+# === Node  NPM (si se usa para minificar o automatizar) ===
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# === MacOS y Linux cache ===
+__MACOSX
+.cache
+.trash
+.env
+
+# === Python (por si usas scripts de procesamiento local) ===
+__pycache__
+.py[cod]
+.pyo
+.pyd
+.env
+.venv
+env
+venv
+
+# === Archivos ZIP o exportaciones ===
+.zip
+.tar
+.gz
+.7z
+.rar
+
+# === Backups y duplicados locales ===
+~$
+backup
+respaldo
+respaldos
+_backup.
+_respaldo.
+
+# === Archivos de sistema de Windows ===
+ehthumbs_vista.db
+Thumbs.dbencryptable
+
+# === Carpetas de prueba o locales ===
+test
+tests
+tmp
+temp
+local

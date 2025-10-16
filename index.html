@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Catálogo RMA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+  <!-- 🔒 Popup de verificación de edad -->
+  <div id="ageModal" class="modal-overlay">
+    <div class="modal">
+      <img src="logo.svg" alt="RMA Logo" class="modal-logo">
+      <h2>Verificación de edad</h2>
+      <p>Es necesario verificar tu edad para visualizar el contenido de esta página.</p>
+      <div class="modal-buttons">
+        <button id="btnSi" class="btn-yes">Soy mayor de edad</button>
+        <button id="btnNo" class="btn-no">No soy mayor de edad</button>
+      </div>
+      <p style="margin-top:16px;font-size:11px;color:#777;">Las imágenes son ilustrativas. El contenido puede variar sin previo aviso.</p>
+    </div>
+  </div>
+
+  <!-- 🧭 Navbar -->
+  <div class="navbar">
+    <div class="logo">
+      <img src="logo.svg" alt="RMA Logo" />
+    </div>
+    <div class="categorias-scroll">
+      <div class="categorias" id="chips"></div>
+    </div>
+  </div>
+
+  <!-- 🧱 Contenido principal -->
+  <div class="content">
+    <div class="grid" id="grid"></div>
+    <aside class="sidebar">
+      <h3>A cotizar</h3>
+      <div class="carrito" id="carrito"><p>Vacío</p></div>
+      <div class="legal">Las imágenes son ilustrativas. El contenido puede variar sin previo aviso.</div>
+      <div class="actions">
+        <button class="btn-x" onclick="vaciar()">✖</button>
+        <button class="btn-wa" onclick="wa()">Enviar Cotización</button>
+      </div>
+    </aside>
+  </div>
+
+  <!-- 🛒 Botón flotante de carrito (todas las pantallas) -->
+  <button id="cartBtn" class="cart-fab">
+    <img src="cart.svg" alt="Carrito" class="cart-icon">
+  </button>
+
+  <!-- 🧾 Modal del carrito móvil -->
+  <div id="mobileCart" class="mobile-cart">
+    <div class="mobile-cart-header">
+      <h3>A cotizar</h3>
+      <button id="closeCart" class="close-cart">✖</button>
+    </div>
+    <div class="mobile-cart-body" id="mobileCarrito"><p>Vacío</p></div>
+    <div class="legal">Las imágenes son ilustrativas. El contenido puede variar sin previo aviso.</div>
+    <button class="btn-wa" onclick="wa()">Enviar Cotización</button>
+  </div>
+
+  <!-- ⚙️ Pie de página -->
+  <div class="footer">
+    © Remedio para el Mal de Amores S.A. de C.V. | Desarrollado por Miguel Molina con Magi.
+  </div>
+
+  <!-- 📜 Scripts -->
+  <script src="js/fetchSheet.js"></script>
+  <script src="js/main.js"></script>
+
+  <!-- 🔐 Script del popup + carrito móvil -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // --- Popup edad ---
+      const modal = document.getElementById("ageModal");
+      const btnSi = document.getElementById("btnSi");
+      const btnNo = document.getElementById("btnNo");
+
+      if (!localStorage.getItem("rma_age_verified")) modal.style.display = "flex";
+      btnSi.onclick = () => { localStorage.setItem("rma_age_verified", "true"); modal.style.display = "none"; };
+      btnNo.onclick = () => { window.location.href = "https://www.gob.mx/cofepris/articulos/advertencia-sobre-el-consumo-de-bebidas-alcoholicas"; };
+
+      document.addEventListener("keydown", e => {
+        if (e.ctrlKey && e.altKey && e.key.toLowerCase() === "r") {
+          localStorage.removeItem("rma_age_verified");
+          alert("Cache de verificación borrado. La página se recargará.");
+          location.reload();
+        }
+      });
+
+      // --- Carrito flotante ---
+      const cartBtn = document.getElementById("cartBtn");
+      const mobileCart = document.getElementById("mobileCart");
+      const closeCart = document.getElementById("closeCart");
+
+      cartBtn.onclick = () => mobileCart.classList.add("show");
+      closeCart.onclick = () => mobileCart.classList.remove("show");
+    });
+  </script>
+</body>
+</html>
