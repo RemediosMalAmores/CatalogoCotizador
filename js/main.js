@@ -1,19 +1,13 @@
+// ======= Estado global =======
 let DATA = [];
 let carrito = [];
 let seleccion = {};
 let filtro = "all";
+
 const EXT = [".webp", ".jpg", ".jpeg", ".png"];
 const WHATSAPP = "529984662008";
 
-/* === CARGA INICIAL === */
-getProducts().then(products => {
-  DATA = products;
-  renderChips();
-  renderGrid();
-  paint();
-});
-
-/* === LIMPIAR TEXTO PARA PID === */
+// ======= Utils =======
 function normalizeId(text) {
   return text
     .toLowerCase()
@@ -23,12 +17,22 @@ function normalizeId(text) {
     .replace(/[^a-z0-9-_]/g, "");
 }
 
-/* === CHIPS === */
+function imgWithFallback(clase, name) {
+  const base = `imagenes-producto/${clase}/${name}`;
+  return `<img src="${base}${EXT[0]}" onerror="tryNextExt(this,'${base}',1)" alt="">`;
+}
+function tryNextExt(img, base, i) {
+  if (i >= EXT.length) { img.onerror = null; img.src = ""; return; }
+  img.onerror = () => tryNextExt(img, base, i + 1);
+  img.src = base + EXT[i];
+}
+
+// ======= Chips =======
 function renderChips() {
   const clases = Array.from(new Set(DATA.map(p => p.clase))).sort();
   const chips = document.getElementById("chips");
-  chips.innerHTML = `<button class="chip active" data-clase="all">Todas</button>` +
-    clases.map(c => `<button class="chip" data-clase="${c}">${c[0].toUpperCase() + c.slice(1)}</button>`).join("");
+  chips.innerHTML = `<button class="chip ${filtro === 'all' ? 'active' : ''}" data-clase="all">Todas</button>` +
+    clases.map(c => `<button class="chip ${filtro === c ? 'active' : ''}" data-clase="${c}">${c[0].toUpperCase() + c.slice(1)}</button>`).join("");
 
   chips.onclick = e => {
     const btn = e.target.closest(".chip");
@@ -40,18 +44,7 @@ function renderChips() {
   };
 }
 
-/* === IMÁGENES CON FALLBACK === */
-function imgWithFallback(clase, name) {
-  const base = `imagenes-producto/${clase}/${name}`;
-  return `<img src="${base}${EXT[0]}" onerror="tryNextExt(this,'${base}',1)">`;
-}
-function tryNextExt(img, base, i) {
-  if (i >= EXT.length) { img.onerror = null; img.src = ""; return; }
-  img.onerror = () => tryNextExt(img, base, i + 1);
-  img.src = base + EXT[i];
-}
-
-/* === GRID === */
+// ======= Grid de productos =======
 function renderGrid() {
   const grid = document.getElementById("grid");
   grid.innerHTML = "";
@@ -64,7 +57,10 @@ function renderGrid() {
       `<button class="pres-btn ${i === 0 ? "active" : ""}" data-role="sel" data-pid="${pid}" data-pres="${pr.presentacion}" data-code="${pr.codigo}">${pr.presentacion}</button>`
     ).join("");
 
-    seleccion[pid] = { presentacion: p.presentaciones[0].presentacion, codigo: p.presentaciones[0].codigo };
+    // preselección
+    if (!seleccion[pid]) {
+      seleccion[pid] = { presentacion: p.presentaciones[0].presentacion, codigo: p.presentaciones[0].codigo };
+    }
 
     grid.insertAdjacentHTML("beforeend", `
       <div class="card" data-pid="${pid}">
@@ -84,7 +80,6 @@ function renderGrid() {
   grid.onclick = onGridClick;
 }
 
-/* === EVENTOS === */
 function onGridClick(e) {
   const el = e.target.closest("[data-role]");
   if (!el) return;
@@ -105,10 +100,13 @@ function onGridClick(e) {
 
   if (role === "dec") input.value = Math.max(1, v - 1);
   if (role === "inc") input.value = Math.min(999, v + 1);
-  if (role === "add") addProduct(product, Math.max(1, v), pid);
+  if (role === "add") {
+    addProduct(product, Math.max(1, v), pid);
+    pulseFab();
+  }
 }
 
-/* === CARRITO === */
+// ======= Carrito =======
 function addProduct(product, cantidad, pid) {
   const sel = seleccion[pid];
   if (!sel) return alert("Selecciona una presentación");
@@ -130,15 +128,9 @@ function vaciar() {
   paint();
 }
 
-/* === RENDERIZAR CARRITO (sin imágenes) === */
-function paint() {
-  const box = document.getElementById("carrito");
-  if (!carrito.length) {
-    box.innerHTML = "<p class='vacio'>Vacío</p>";
-    return;
-  }
-
-  box.innerHTML = carrito.map((i, idx) => `
+function renderCarritoHTML(list) {
+  if (!list.length) return "<p class='vacio'>Vacío</p>";
+  return list.map((i, idx) => `
     <div class="item-carrito sin-img">
       <div class="info">
         <div class="nombre">${i.nombre}</div>
@@ -150,40 +142,149 @@ function paint() {
   `).join("");
 }
 
-/* === WHATSAPP Y COPIA EXCEL + CLIENTE === */
+function paint() {
+  const box = document.getElementById("carrito");
+  const mob = document.getElementById("mobileCarrito");
+  const cartBtn = document.getElementById("cartBtn");
+
+  // pinta desktop
+  if (box) box.innerHTML = renderCarritoHTML(carrito);
+  // pinta móvil
+  if (mob) mob.innerHTML = renderCarritoHTML(carrito);
+
+  // contador FAB
+  if (cartBtn) {
+    let badge = cartBtn.querySelector('.cart-badge');
+    const count = carrito.reduce((acc, i) => acc + i.cantidad, 0);
+    if (!badge) {
+      badge = document.createElement('div');
+      badge.className = 'cart-badge';
+      cartBtn.appendChild(badge);
+    }
+    badge.textContent = count ? String(count) : "";
+    badge.classList.remove('badge-bounce');
+    // forzar reflow para animación
+    void badge.offsetWidth;
+    badge.classList.add('badge-bounce');
+  }
+}
+
+// ======= WhatsApp + copiar tabla =======
 function wa() {
   if (!carrito.length) return alert("Carrito vacío");
 
   const clienteDesktop = document.getElementById("cliente");
   const clienteMobile = document.getElementById("cliente-mob");
-
   const cliente = (clienteDesktop?.value || clienteMobile?.value || "").trim();
 
   if (!cliente) {
-    if (!confirm("No escribiste el nombre del cliente. ¿Deseas continuar sin él?")) return;
+    const ok = confirm("No escribiste el nombre del cliente. ¿Deseas continuar sin él?");
+    if (!ok) return;
   }
 
   let msg = "";
-
   if (cliente) msg += `Cliente: ${cliente}\n\n`;
 
-  carrito.forEach(i => msg += `${i.codigo}\t${i.cantidad}\n`);
+  carrito.forEach(i => { msg += `${i.codigo}\t${i.cantidad}\n`; });
   msg += "\n";
-  carrito.forEach((i, idx) => msg += `${idx + 1}. ${i.nombre} ${i.presentacion.toUpperCase()} (${i.cantidad} UDS)*\n`);
-
-  navigator.clipboard.writeText(msg.replace(/\n/g, "\r\n")).then(() => {
-    console.log("Mensaje copiado al portapapeles listo para Excel");
+  carrito.forEach((i, idx) => {
+    msg += `${idx + 1}. ${i.nombre} ${i.presentacion.toUpperCase()} (${i.cantidad} UDS)*\n`;
   });
 
+  // Copiar con CRLF para Excel
+  navigator.clipboard.writeText(msg.replace(/\n/g, "\r\n")).catch(() => {});
   const encoded = encodeURIComponent(msg);
   window.open(`https://wa.me/${WHATSAPP}?text=${encoded}`, "_blank");
 }
 
-/* === SINCRONIZAR NOMBRE CLIENTE ENTRE VERSIONES === */
+// ======= Interacciones UI =======
+function pulseFab() {
+  const fab = document.getElementById('cartBtn');
+  if (!fab) return;
+  fab.classList.remove('pulse');
+  void fab.offsetWidth; // reflow
+  fab.classList.add('pulse');
+}
+
+// sincronizar nombre entre desktop/móvil
 document.addEventListener("input", e => {
   if (e.target.id === "cliente" && document.getElementById("cliente-mob")) {
     document.getElementById("cliente-mob").value = e.target.value;
   } else if (e.target.id === "cliente-mob" && document.getElementById("cliente")) {
     document.getElementById("cliente").value = e.target.value;
   }
+});
+
+// abrir/cerrar carrito móvil
+function setupMobileCart() {
+  const btn = document.getElementById("cartBtn");
+  const modal = document.getElementById("mobileCart");
+  const close = document.getElementById("closeCart");
+  if (!btn || !modal || !close) return;
+
+  btn.addEventListener("click", () => {
+    modal.classList.add("show");
+    modal.setAttribute("aria-hidden", "false");
+  });
+  close.addEventListener("click", () => {
+    modal.classList.remove("show");
+    modal.setAttribute("aria-hidden", "true");
+  });
+
+  // cerrar al tocar afuera (zona oscura)
+  modal.addEventListener("click", (e) => {
+    const isInside = e.target.closest(".mobile-cart-header, .mobile-cart-body, .actions, .legal");
+    if (!isInside) {
+      modal.classList.remove("show");
+      modal.setAttribute("aria-hidden", "true");
+    }
+  });
+}
+
+// ======= Popup Edad (CSS sin conflicto) =======
+function setupAgeGate() {
+  const modalOverlay = document.getElementById("ageModal");
+  const btnSi = document.getElementById("btnSi");
+  const btnNo = document.getElementById("btnNo");
+  if (!modalOverlay || !btnSi || !btnNo) return;
+
+  // Mostrar solo si no está verificado
+  if (!localStorage.getItem("rma_age_verified")) {
+    modalOverlay.classList.add("active");
+  }
+
+  btnSi.onclick = () => {
+    localStorage.setItem("rma_age_verified", "true");
+    modalOverlay.classList.remove("active");
+  };
+
+  btnNo.onclick = () => {
+    window.location.href = "https://www.gob.mx/cofepris/articulos/advertencia-sobre-el-consumo-de-bebidas-alcoholicas";
+  };
+
+  // Atajo para reiniciar verificación
+  document.addEventListener("keydown", e => {
+    if (e.ctrlKey && e.altKey && e.key.toLowerCase() === "r") {
+      e.preventDefault();
+      alert("Verificación reiniciada. El popup volverá a mostrarse.");
+      localStorage.removeItem("rma_age_verified");
+      modalOverlay.classList.add("active");
+    }
+  });
+}
+
+// ======= Carga inicial =======
+document.addEventListener("DOMContentLoaded", () => {
+  setupAgeGate();
+  setupMobileCart();
+
+  getProducts().then(products => {
+    DATA = products;
+    renderChips();
+    renderGrid();
+    paint();
+  }).catch(() => {
+    // En caso de error, deja el grid vacío pero no rompas la página
+    document.getElementById("grid").innerHTML = "<p style='opacity:.6'>No se pudo cargar el catálogo por el momento.</p>";
+  });
 });
