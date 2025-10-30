@@ -181,3 +181,200 @@
     display: none !important;
   }
 }
+/* === CARRITO ESTÉTICO === */
+#carrito {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #222;
+}
+
+#carrito .item-carrito {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f8f8;
+  padding: 6px 10px;
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+/* === NUEVO DISEÑO DE CARRITO === */
+#carrito {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 0.9rem;
+}
+
+#carrito .item-carrito {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fdfdfd;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 8px 10px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+#carrito .item-carrito:hover {
+  transform: scale(1.01);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+}
+
+#carrito .thumb {
+  flex-shrink: 0;
+  width: 45px;
+  height: 60px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+}
+
+#carrito .thumb img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+#carrito .info {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: #333;
+}
+
+#carrito .info .nombre {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+#carrito .info .desc,
+#carrito .info .cant {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+#carrito .borrar {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #d33;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.15s ease;
+  margin-left: 8px;
+}
+
+#carrito .borrar:hover {
+  color: #a00;
+  transform: scale(1.2);
+}
+
+#carrito .vacio {
+  color: #777;
+  text-align: center;
+  font-style: italic;
+  padding: 10px 0;
+}
+/* === CARRITO SIN IMÁGENES === */
+#carrito {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 0.9rem;
+}
+
+#carrito .item-carrito {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+#carrito .item-carrito:hover {
+  background: #f8f8f8;
+  transform: scale(1.01);
+}
+
+#carrito .info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: #333;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+#carrito .info .nombre {
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+#carrito .info .desc,
+#carrito .info .cant {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+#carrito .borrar {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  color: #d33;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.15s ease;
+}
+
+#carrito .borrar:hover {
+  color: #a00;
+  transform: scale(1.2);
+}
+
+#carrito .vacio {
+  color: #777;
+  text-align: center;
+  font-style: italic;
+  padding: 10px 0;
+}
+/* === CUADRO DE NOMBRE DE CLIENTE === */
+.cliente-box {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+.cliente-box label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.cliente-box input {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cliente-box input:focus {
+  border-color: #0c8b44;
+  box-shadow: 0 0 3px rgba(12,139,68,0.3);
+  outline: none;
+}
