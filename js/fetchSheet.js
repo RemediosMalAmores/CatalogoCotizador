@@ -95,3 +95,4 @@ async function getProducts() {
 
   return Array.from(map.values());
 }
+
