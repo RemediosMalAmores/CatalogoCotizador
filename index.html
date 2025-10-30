@@ -21,7 +21,7 @@
         <button id="btnSi" class="btn-yes">Soy mayor de edad</button>
         <button id="btnNo" class="btn-no">No soy mayor de edad</button>
       </div>
-      <p style="margin-top:16px;font-size:11px;color:#777;">Las imágenes son ilustrativas. El contenido puede variar sin previo aviso.</p>
+      <p style="margin-top:16px;font-size:11px;color:#777;">Imágenes ilustrativas. Cambios sin previo aviso.</p>
     </div>
   </div>
 
@@ -37,11 +37,27 @@
 
   <!-- 🧱 Contenido principal -->
   <div class="content">
+    <!-- 🧩 Grid de productos -->
     <div class="grid" id="grid"></div>
+
+    <!-- 🧾 Panel derecho -->
     <aside class="sidebar">
-      <h3>A cotizar</h3>
-      <div class="carrito" id="carrito"><p>Vacío</p></div>
-      <div class="legal">Las imágenes son ilustrativas. El contenido puede variar sin previo aviso.</div>
+
+      <!-- 🔹 Cabecera con “A cotizar” y campo de cliente -->
+      <div class="header-cotizar">
+        <h3>A cotizar</h3>
+        <div class="cliente-inline">
+          <input type="text" id="cliente" placeholder="Nombre del cliente...">
+        </div>
+      </div>
+
+      <!-- 🧾 Carrito -->
+      <div id="carrito"></div>
+
+      <!-- ⚠️ Aviso legal -->
+      <div class="legal">Imágenes ilustrativas. Cambios sin previo aviso.</div>
+
+      <!-- 🔘 Botones (debajo del aviso) -->
       <div class="actions">
         <button class="btn-x" onclick="vaciar()">✖</button>
         <button class="btn-wa" onclick="wa()">Enviar Cotización</button>
@@ -49,20 +65,29 @@
     </aside>
   </div>
 
-  <!-- 🛒 Botón flotante de carrito (todas las pantallas) -->
+  <!-- 🛒 Botón flotante del carrito (móvil) -->
   <button id="cartBtn" class="cart-fab">
     <img src="cart.svg" alt="Carrito" class="cart-icon">
   </button>
 
-  <!-- 🧾 Modal del carrito móvil -->
+  <!-- 📱 Modal del carrito móvil -->
   <div id="mobileCart" class="mobile-cart">
     <div class="mobile-cart-header">
       <h3>A cotizar</h3>
+      <div class="cliente-inline" style="padding: 5px 10px;">
+        <input type="text" id="cliente-mob" placeholder="Nombre del cliente...">
+      </div>
       <button id="closeCart" class="close-cart">✖</button>
     </div>
+
     <div class="mobile-cart-body" id="mobileCarrito"><p>Vacío</p></div>
-    <div class="legal">Las imágenes son ilustrativas. El contenido puede variar sin previo aviso.</div>
-    <button class="btn-wa" onclick="wa()">Enviar Cotización</button>
+
+    <div class="legal">Imágenes ilustrativas. Cambios sin previo aviso.</div>
+
+    <div class="actions">
+      <button class="btn-x" onclick="vaciar()">✖</button>
+      <button class="btn-wa" onclick="wa()">Enviar Cotización</button>
+    </div>
   </div>
 
   <!-- ⚙️ Pie de página -->
@@ -74,7 +99,7 @@
   <script src="js/fetchSheet.js"></script>
   <script src="js/main.js"></script>
 
-  <!-- 🔐 Script del popup + carrito móvil -->
+  <!-- 🔐 Script del popup y carrito móvil -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       // --- Popup edad ---
@@ -83,8 +108,13 @@
       const btnNo = document.getElementById("btnNo");
 
       if (!localStorage.getItem("rma_age_verified")) modal.style.display = "flex";
-      btnSi.onclick = () => { localStorage.setItem("rma_age_verified", "true"); modal.style.display = "none"; };
-      btnNo.onclick = () => { window.location.href = "https://www.gob.mx/cofepris/articulos/advertencia-sobre-el-consumo-de-bebidas-alcoholicas"; };
+      btnSi.onclick = () => {
+        localStorage.setItem("rma_age_verified", "true");
+        modal.style.display = "none";
+      };
+      btnNo.onclick = () => {
+        window.location.href = "https://www.gob.mx/cofepris/articulos/advertencia-sobre-el-consumo-de-bebidas-alcoholicas";
+      };
 
       document.addEventListener("keydown", e => {
         if (e.ctrlKey && e.altKey && e.key.toLowerCase() === "r") {
