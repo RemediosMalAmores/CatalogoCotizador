@@ -390,3 +390,258 @@ body {
   align-items: center;
   box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
+/* === Micro-interacciones suaves (añadidos) =============================== */
+:root {
+  --ease: cubic-bezier(.2,.8,.2,1);
+  --dur: 220ms;
+}
+
+/* Tarjetas: aparición y hover sutil */
+.card.reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: transform var(--dur) var(--ease), opacity var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.card.is-visible {
+  opacity: 1;
+  transform: none;
+}
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(0,0,0,.08);
+}
+
+/* Imágenes: zoom mínimo al hover */
+.card .card-img img {
+  transition: transform 180ms var(--ease);
+}
+.card:hover .card-img img {
+  transform: scale(1.02);
+}
+
+/* Botones: transición, micro-press */
+button, .agregar, .qty, .pres-btn, .btn-wa, .btn-x, .chip {
+  transition: transform 120ms var(--ease), background-color var(--dur) var(--ease), color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+button:active, .agregar:active, .qty:active, .pres-btn:active, .btn-wa:active, .btn-x:active, .chip:active {
+  transform: scale(.98);
+}
+
+/* Chips: sutil realce */
+.chip:hover {
+  box-shadow: 0 4px 14px rgba(0,0,0,.06);
+  transform: translateY(-1px);
+}
+
+/* Ripple minimalista (añadir clase .rippleable a botones) */
+.rippleable {
+  position: relative;
+  overflow: hidden;
+}
+.ripple {
+  position: absolute;
+  border-radius: 999px;
+  transform: scale(0);
+  opacity: .35;
+  background: currentColor;
+  pointer-events: none;
+  animation: ripple .5s var(--ease) forwards;
+  mix-blend-mode: multiply;
+}
+@keyframes ripple {
+  to { transform: scale(2.6); opacity: 0; }
+}
+
+/* FAB del carrito: pulso cuando agregas algo */
+.cart-fab.pulse {
+  animation: pulse 600ms var(--ease);
+}
+@keyframes pulse {
+  0% { transform: scale(1); box-shadow: 0 6px 20px rgba(0,0,0,.15); }
+  50% { transform: scale(1.06); box-shadow: 0 10px 28px rgba(0,0,0,.18); }
+  100% { transform: scale(1); box-shadow: 0 6px 20px rgba(0,0,0,.15); }
+}
+
+/* Badge: pequeño rebote al actualizar conteo */
+.cart-badge.badge-bounce {
+  animation: badgeBounce 360ms var(--ease);
+}
+@keyframes badgeBounce {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+/* Contenedor de chips: desplazamiento suave al hacer drag/scroll */
+.categorias-scroll {
+  scroll-behavior: smooth;
+}
+
+/* Modal (si lo usas): suave entrada; solo aplica si se muestra/oculta sin display:none */
+.modal-overlay {
+  transition: opacity var(--dur) var(--ease);
+}
+.modal {
+  transition: transform var(--dur) var(--ease), opacity var(--dur) var(--ease);
+}
+.modal-overlay[aria-hidden="true"] { opacity: 0; }
+.modal-overlay[aria-hidden="false"] { opacity: 1; }
+.modal { transform: translateY(8px); opacity: 0; }
+.modal-overlay[aria-hidden="false"] .modal { transform: none; opacity: 1; }
+/* === ARREGLO SCROLL HORIZONTAL EN CARRITO === */
+#carrito {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 0.9rem;
+  overflow-x: hidden; /* 🔹 evita scroll lateral */
+}
+
+#carrito .item-carrito {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: background 0.2s ease, transform 0.1s ease;
+  width: 100%;             /* 🔹 asegura que no se expanda más que el contenedor */
+  box-sizing: border-box;  /* 🔹 incluye padding/borde en el ancho total */
+  overflow: hidden;        /* 🔹 oculta cualquier exceso interno */
+}
+
+#carrito .item-carrito:hover {
+  background: #f8f8f8;
+  transform: scale(1.01);
+}
+
+#carrito .info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: #333;
+  flex-grow: 1;
+  overflow: hidden;
+  min-width: 0; /* 🔹 evita que el texto fuerce el ancho */
+}
+
+#carrito .info .nombre {
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+#carrito .info .desc,
+#carrito .info .cant {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+#carrito .borrar {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  color: #d33;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.15s ease;
+  flex-shrink: 0; /* 🔹 evita que la X empuje el texto */
+  margin-left: 8px;
+}
+
+#carrito .borrar:hover {
+  color: #a00;
+  transform: scale(1.2);
+}
+
+#carrito .vacio {
+  color: #777;
+  text-align: center;
+  font-style: italic;
+  padding: 10px 0;
+}
+/* === CABECERA COTIZAR CON NOMBRE === */
+.header-cotizar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap; /* 🔹 Hace que se adapte en móvil */
+}
+
+.header-cotizar h3 {
+  font-size: 1.1rem;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.cliente-inline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.cliente-inline label {
+  font-size: 0.85rem;
+  color: #333;
+  white-space: nowrap;
+}
+
+.cliente-inline input {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 0.85rem;
+  width: 140px;
+  max-width: 45%;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cliente-inline input:focus {
+  border-color: #0c8b44;
+  box-shadow: 0 0 3px rgba(12,139,68,0.3);
+  outline: none;
+}
+
+/* Ajuste móvil: campo baja debajo del título */
+@media (max-width: 768px) {
+  .header-cotizar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cliente-inline input {
+    width: 100%;
+    max-width: none;
+  }
+}
+/* === Ajuste preciso: separar aviso legal de los botones === */
+.legal {
+  display: block;
+  margin-top: auto;     /* 🔹 Empuja el aviso hacia abajo del panel */
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+  font-size: 11px;
+  color: #777;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.actions {
+  margin-top: 12px;     /* 🔹 deja un pequeño espacio sobre los botones */
+}
+/* === Ajuste: ampliar campo de nombre === */
+.cliente-inline {
+  flex: 1; /* hace que el contenedor del input use todo el espacio libre */
+}
+
+.cliente-inline input {
+  width: 100%;        /* se expande dentro del contenedor */
+  max-width: none;    /* elimina el límite anterior */
+}
+
