@@ -5,168 +5,185 @@ let filtro = "all";
 const EXT = [".webp", ".jpg", ".jpeg", ".png"];
 const WHATSAPP = "529984662008";
 
-// 🚀 Carga inicial de productos
+/* === CARGA INICIAL === */
 getProducts().then(products => {
   DATA = products;
   renderChips();
   renderGrid();
+  paint();
 });
 
-// === Renderizado de categorías (chips) ===
+/* === LIMPIAR TEXTO PARA PID === */
+function normalizeId(text) {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-_]/g, "");
+}
+
+/* === CHIPS === */
 function renderChips() {
   const clases = Array.from(new Set(DATA.map(p => p.clase))).sort();
   const chips = document.getElementById("chips");
   chips.innerHTML = `<button class="chip active" data-clase="all">Todas</button>` +
-    clases.map(c => {
-      const label = c.replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase());
-      return `<button class="chip" data-clase="${c}">${label}</button>`;
-    }).join("");
+    clases.map(c => `<button class="chip" data-clase="${c}">${c[0].toUpperCase() + c.slice(1)}</button>`).join("");
 
-  chips.addEventListener("click", (e) => {
-    if (e.target.classList.contains("chip")) {
-      document.querySelectorAll(".chip").forEach(ch => ch.classList.remove("active"));
-      e.target.classList.add("active");
-      filtro = e.target.dataset.clase;
-      renderGrid();
-    }
-  });
-}
-
-// === Renderizado de imagen con fallback ===
-function imgWithFallback(clase, nombreImg) {
-  const base = `imagenes-producto/${clase}/${nombreImg}`;
-  return `<img src="${base}${EXT[0]}" alt="${nombreImg}" onerror="tryNextExt(this,'${base}',1)">`;
-}
-
-function tryNextExt(imgEl, base, idx) {
-  if (idx >= EXT.length) {
-    imgEl.onerror = null;
-    imgEl.src = "";
-    return;
-  }
-  imgEl.onerror = function () {
-    tryNextExt(imgEl, base, idx + 1);
+  chips.onclick = e => {
+    const btn = e.target.closest(".chip");
+    if (!btn) return;
+    document.querySelectorAll(".chip").forEach(ch => ch.classList.remove("active"));
+    btn.classList.add("active");
+    filtro = btn.dataset.clase;
+    renderGrid();
   };
-  imgEl.src = base + EXT[idx];
 }
 
-// === Renderizado del grid ===
+/* === IMÁGENES CON FALLBACK === */
+function imgWithFallback(clase, name) {
+  const base = `imagenes-producto/${clase}/${name}`;
+  return `<img src="${base}${EXT[0]}" onerror="tryNextExt(this,'${base}',1)">`;
+}
+function tryNextExt(img, base, i) {
+  if (i >= EXT.length) { img.onerror = null; img.src = ""; return; }
+  img.onerror = () => tryNextExt(img, base, i + 1);
+  img.src = base + EXT[i];
+}
+
+/* === GRID === */
 function renderGrid() {
   const grid = document.getElementById("grid");
   grid.innerHTML = "";
-  (DATA || [])
-    .filter(p => filtro === "all" || p.clase === filtro)
-    .forEach(p => {
-      // Ordenar presentaciones (más pequeñas primero)
-      let sorted = [...p.presentaciones];
-      sorted.sort((a, b) => parseInt(a) - parseInt(b));
-      const presBtns = sorted
-        .map((pr, i) =>
-          `<button class="pres-btn ${i === 0 ? "active" : ""}" onclick="sel('${p.nombre}','${pr}',this)">${pr}</button>`
-        )
-        .join("");
+  const productos = DATA.filter(p => filtro === "all" || p.clase === filtro);
 
-      // Preseleccionar automáticamente la presentación más baja
-      seleccion[p.nombre] = sorted[0] || "";
+  productos.forEach(p => {
+    const pid = normalizeId(`${p.clase}-${p.imagen_name}-${p.nombre}`);
 
-      grid.innerHTML += `
-        <div class="card" data-clase="${p.clase}">
-          <div class="card-img">${imgWithFallback(p.clase, p.imagen_name)}</div>
-          <h3>${p.nombre}</h3>
-          <div class="presentaciones">${presBtns}</div>
-          <div class="cantidad">
-            <button onclick="chg('${p.nombre}',-1)">-</button>
-            <input id="cant-${p.nombre}" type="number" value="1" min="1" max="999" />
-            <button onclick="chg('${p.nombre}',1)">+</button>
-          </div>
-          <button class="agregar" onclick="add('${p.nombre}')">Agregar</button>
-        </div>`;
-    });
+    const presBtns = p.presentaciones.map((pr, i) =>
+      `<button class="pres-btn ${i === 0 ? "active" : ""}" data-role="sel" data-pid="${pid}" data-pres="${pr.presentacion}" data-code="${pr.codigo}">${pr.presentacion}</button>`
+    ).join("");
+
+    seleccion[pid] = { presentacion: p.presentaciones[0].presentacion, codigo: p.presentaciones[0].codigo };
+
+    grid.insertAdjacentHTML("beforeend", `
+      <div class="card" data-pid="${pid}">
+        <div class="card-img">${imgWithFallback(p.clase, p.imagen_name)}</div>
+        <h3>${p.nombre}</h3>
+        <div class="presentaciones">${presBtns}</div>
+        <div class="cantidad">
+          <button data-role="dec" data-pid="${pid}">-</button>
+          <input id="cant-${pid}" type="number" value="1" min="1" max="999">
+          <button data-role="inc" data-pid="${pid}">+</button>
+        </div>
+        <button class="agregar" data-role="add" data-pid="${pid}">Agregar</button>
+      </div>
+    `);
+  });
+
+  grid.onclick = onGridClick;
 }
 
-// === Selección de presentación ===
-function sel(nombre, presentacion, btn) {
-  seleccion[nombre] = presentacion;
-  btn.parentElement.querySelectorAll(".pres-btn").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-}
+/* === EVENTOS === */
+function onGridClick(e) {
+  const el = e.target.closest("[data-role]");
+  if (!el) return;
+  const role = el.dataset.role;
+  const pid = el.dataset.pid;
+  const product = DATA.find(p => normalizeId(`${p.clase}-${p.imagen_name}-${p.nombre}`) === pid);
+  if (!product) return;
 
-// === Cambio de cantidad ===
-function chg(nombre, delta) {
-  const el = document.getElementById("cant-" + nombre);
-  let v = parseInt(el.value) || 1;
-  v = Math.max(1, v + delta);
-  el.value = v;
-}
-
-// === Agregar producto al carrito ===
-function add(nombre) {
-  if (!seleccion[nombre]) {
-    alert("Selecciona una presentación");
+  if (role === "sel") {
+    el.parentElement.querySelectorAll(".pres-btn").forEach(b => b.classList.remove("active"));
+    el.classList.add("active");
+    seleccion[pid] = { presentacion: el.dataset.pres, codigo: el.dataset.code };
     return;
   }
-  const cant = parseInt(document.getElementById("cant-" + nombre).value) || 1;
-  const ex = carrito.find(i => i.nombre === nombre && i.presentacion === seleccion[nombre]);
-  if (ex) ex.cantidad += cant;
-  else carrito.push({ nombre, presentacion: seleccion[nombre], cantidad: cant });
+
+  const input = document.getElementById(`cant-${pid}`);
+  let v = parseInt(input.value) || 1;
+
+  if (role === "dec") input.value = Math.max(1, v - 1);
+  if (role === "inc") input.value = Math.min(999, v + 1);
+  if (role === "add") addProduct(product, Math.max(1, v), pid);
+}
+
+/* === CARRITO === */
+function addProduct(product, cantidad, pid) {
+  const sel = seleccion[pid];
+  if (!sel) return alert("Selecciona una presentación");
+
+  const existing = carrito.find(i => i.codigo === sel.codigo && i.presentacion === sel.presentacion && i.nombre === product.nombre);
+  if (existing) existing.cantidad += cantidad;
+  else carrito.push({ codigo: sel.codigo, nombre: product.nombre, presentacion: sel.presentacion, cantidad });
+
   paint();
 }
 
-// === Vaciar carrito ===
+function removeItem(index) {
+  carrito.splice(index, 1);
+  paint();
+}
+
 function vaciar() {
   carrito = [];
   paint();
 }
 
-// === Enviar por WhatsApp ===
-function wa() {
-  if (carrito.length === 0) {
-    alert("Carrito vacío");
-    return;
-  }
-  let msg = "Cotización:%0A";
-  carrito.forEach(i => {
-    msg += `${i.cantidad} x ${i.nombre} (${i.presentacion})%0A`;
-  });
-  window.open(`https://wa.me/${WHATSAPP}?text=${msg}`, "_blank");
-}
-
-// === Renderizado del carrito (web + móvil) ===
+/* === RENDERIZAR CARRITO (sin imágenes) === */
 function paint() {
   const box = document.getElementById("carrito");
-  const mobileBox = document.getElementById("mobileCarrito");
-
-  if (carrito.length === 0) {
-    box.innerHTML = "<p>Vacío</p>";
-    mobileBox.innerHTML = "<p>Vacío</p>";
-    updateCartBadge(0);
+  if (!carrito.length) {
+    box.innerHTML = "<p class='vacio'>Vacío</p>";
     return;
   }
 
-  const html = carrito
-    .map(
-      i =>
-        `<div class="item">${i.cantidad}x - ${i.nombre} (${i.presentacion})</div>`
-    )
-    .join("");
-
-  box.innerHTML = html;
-  mobileBox.innerHTML = html;
-  updateCartBadge(carrito.length);
+  box.innerHTML = carrito.map((i, idx) => `
+    <div class="item-carrito sin-img">
+      <div class="info">
+        <div class="nombre">${i.nombre}</div>
+        <div class="desc">Presentación: <b>${i.presentacion.toUpperCase()}</b></div>
+        <div class="cant">Cantidad: <b>${i.cantidad}</b></div>
+      </div>
+      <button class="borrar" onclick="removeItem(${idx})" title="Eliminar">✖</button>
+    </div>
+  `).join("");
 }
 
-// === Actualiza el contador en el botón del carrito flotante ===
-function updateCartBadge(count) {
-  let badge = document.querySelector(".cart-badge");
-  if (!badge) {
-    const btn = document.getElementById("cartBtn");
-    badge = document.createElement("div");
-    badge.className = "cart-badge";
-    btn.appendChild(badge);
+/* === WHATSAPP Y COPIA EXCEL + CLIENTE === */
+function wa() {
+  if (!carrito.length) return alert("Carrito vacío");
+
+  const clienteDesktop = document.getElementById("cliente");
+  const clienteMobile = document.getElementById("cliente-mob");
+
+  const cliente = (clienteDesktop?.value || clienteMobile?.value || "").trim();
+
+  if (!cliente) {
+    if (!confirm("No escribiste el nombre del cliente. ¿Deseas continuar sin él?")) return;
   }
-  badge.textContent = count > 99 ? "99+" : count;
-  badge.style.display = count > 0 ? "flex" : "none";
+
+  let msg = "";
+
+  if (cliente) msg += `Cliente: ${cliente}\n\n`;
+
+  carrito.forEach(i => msg += `${i.codigo}\t${i.cantidad}\n`);
+  msg += "\n";
+  carrito.forEach((i, idx) => msg += `${idx + 1}. ${i.nombre} ${i.presentacion.toUpperCase()} (${i.cantidad} UDS)*\n`);
+
+  navigator.clipboard.writeText(msg.replace(/\n/g, "\r\n")).then(() => {
+    console.log("Mensaje copiado al portapapeles listo para Excel");
+  });
+
+  const encoded = encodeURIComponent(msg);
+  window.open(`https://wa.me/${WHATSAPP}?text=${encoded}`, "_blank");
 }
 
-// === Inicializar contador en 0 ===
-updateCartBadge(0);
+/* === SINCRONIZAR NOMBRE CLIENTE ENTRE VERSIONES === */
+document.addEventListener("input", e => {
+  if (e.target.id === "cliente" && document.getElementById("cliente-mob")) {
+    document.getElementById("cliente-mob").value = e.target.value;
+  } else if (e.target.id === "cliente-mob" && document.getElementById("cliente")) {
+    document.getElementById("cliente").value = e.target.value;
+  }
+});
