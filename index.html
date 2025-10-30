@@ -42,8 +42,6 @@
 
     <!-- 🧾 Panel derecho -->
     <aside class="sidebar">
-
-      <!-- 🔹 Cabecera con “A cotizar” y campo de cliente -->
       <div class="header-cotizar">
         <h3>A cotizar</h3>
         <div class="cliente-inline">
@@ -51,13 +49,10 @@
         </div>
       </div>
 
-      <!-- 🧾 Carrito -->
       <div id="carrito"></div>
 
-      <!-- ⚠️ Aviso legal -->
       <div class="legal">Imágenes ilustrativas. Cambios sin previo aviso.</div>
 
-      <!-- 🔘 Botones (debajo del aviso) -->
       <div class="actions">
         <button class="btn-x" onclick="vaciar()">✖</button>
         <button class="btn-wa" onclick="wa()">Enviar Cotización</button>
@@ -65,22 +60,22 @@
     </aside>
   </div>
 
-  <!-- 🛒 Botón flotante del carrito (móvil) -->
-  <button id="cartBtn" class="cart-fab">
+  <!-- 🛒 Botón flotante del carrito (móvil/tablet) -->
+  <button id="cartBtn" class="cart-fab" aria-label="Abrir carrito">
     <img src="cart.svg" alt="Carrito" class="cart-icon">
   </button>
 
   <!-- 📱 Modal del carrito móvil -->
-  <div id="mobileCart" class="mobile-cart">
+  <div id="mobileCart" class="mobile-cart" aria-hidden="true">
     <div class="mobile-cart-header">
       <h3>A cotizar</h3>
       <div class="cliente-inline" style="padding: 5px 10px;">
         <input type="text" id="cliente-mob" placeholder="Nombre del cliente...">
       </div>
-      <button id="closeCart" class="close-cart">✖</button>
+      <button id="closeCart" class="close-cart" aria-label="Cerrar carrito">✖</button>
     </div>
 
-    <div class="mobile-cart-body" id="mobileCarrito"><p>Vacío</p></div>
+    <div class="mobile-cart-body" id="mobileCarrito"><p class="vacio">Vacío</p></div>
 
     <div class="legal">Imágenes ilustrativas. Cambios sin previo aviso.</div>
 
@@ -98,40 +93,5 @@
   <!-- 📜 Scripts -->
   <script src="js/fetchSheet.js"></script>
   <script src="js/main.js"></script>
-
-  <!-- 🔐 Script del popup y carrito móvil -->
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      // --- Popup edad ---
-      const modal = document.getElementById("ageModal");
-      const btnSi = document.getElementById("btnSi");
-      const btnNo = document.getElementById("btnNo");
-
-      if (!localStorage.getItem("rma_age_verified")) modal.style.display = "flex";
-      btnSi.onclick = () => {
-        localStorage.setItem("rma_age_verified", "true");
-        modal.style.display = "none";
-      };
-      btnNo.onclick = () => {
-        window.location.href = "https://www.gob.mx/cofepris/articulos/advertencia-sobre-el-consumo-de-bebidas-alcoholicas";
-      };
-
-      document.addEventListener("keydown", e => {
-        if (e.ctrlKey && e.altKey && e.key.toLowerCase() === "r") {
-          localStorage.removeItem("rma_age_verified");
-          alert("Cache de verificación borrado. La página se recargará.");
-          location.reload();
-        }
-      });
-
-      // --- Carrito flotante ---
-      const cartBtn = document.getElementById("cartBtn");
-      const mobileCart = document.getElementById("mobileCart");
-      const closeCart = document.getElementById("closeCart");
-
-      cartBtn.onclick = () => mobileCart.classList.add("show");
-      closeCart.onclick = () => mobileCart.classList.remove("show");
-    });
-  </script>
 </body>
 </html>
